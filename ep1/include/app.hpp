@@ -14,19 +14,16 @@ public:
 	~Application();
 	int main_loop();
 private:
-
 	TargetDetector *target_detector;
 
 	cv::Mat templ;
-	cv::Mat result;
-	std::vector<cv::Mat> templates;
 	cv::VideoCapture *capture;
 	
 	std::string window_name;
 	std::string template_file;
 
-	void log(std::string);
+
 	int prepare();
 	cv::Mat process_frame(cv::Mat);
-	void do_match(cv::Mat,cv::Mat);
+	void log(std::string);
 };

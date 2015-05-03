@@ -29,6 +29,36 @@ Application::~Application(){
 		delete target_detector;
 }
 
+int Application::prepare(){
+	this->log("prepare begin");
+	this->log(window_name);
+
+
+	namedWindow(window_name);
+	
+	namedWindow("DEBUG1",1);
+
+	/* Video Input */
+	capture = new VideoCapture(0);
+	if (!capture->isOpened()) {
+		cerr << "Failed to open a video device or video file!\n" << endl;
+		return 1;
+	}
+
+	/* Load files */
+	Mat templ = imread(template_file,CV_LOAD_IMAGE_COLOR);
+	cout << "templ: " << template_file << templ.cols << "x" << templ.rows << endl;
+	if(templ.data == NULL){
+		cerr << "Failed to load template file!\n" << endl;
+	}
+
+	target_detector = new TargetDetector(templ);
+	target_detector->init();
+
+	this->log("prepare end");
+	return 0;
+}
+
 int Application::main_loop(){
 	int n = 0;
 	char filename[200];
@@ -63,38 +93,6 @@ int Application::main_loop(){
 	return 0;
 }
 
-
-
-int Application::prepare(){
-	this->log("prepare begin");
-	this->log(window_name);
-
-
-	namedWindow(window_name);
-	
-	namedWindow("DEBUG1",1);
-
-	/* Video Input */
-	capture = new VideoCapture(0);
-	if (!capture->isOpened()) {
-		cerr << "Failed to open a video device or video file!\n" << endl;
-		return 1;
-	}
-
-	/* Load files */
-	Mat templ = imread(template_file,CV_LOAD_IMAGE_COLOR);
-	cout << "templ: " << template_file << templ.cols << "x" << templ.rows << endl;
-	if(templ.data == NULL){
-		cerr << "Failed to load template file!\n" << endl;
-	}
-
-	target_detector = new TargetDetector(templ);
-	target_detector->init();
-
-	this->log("prepare end");
-	return 0;
-}
-
 Mat Application::process_frame(Mat frame){
 	int offx = 32;
 	int offy = offx;
@@ -122,65 +120,6 @@ Mat Application::process_frame(Mat frame){
 	           thickness,
 	           lineType );
 
-	//target_detector->process_frame(control_panel);
+	target_detector->process_frame(control_panel);
 	return frame;
-}
-
-void Application::do_match(Mat frame, Mat templ){
-	double minVal; double maxVal; Point minLoc; Point maxLoc;
-	Point matchLoc;
-
-	Mat result;
-	Mat tmp;
-
-	unsigned int i;
-
-	//char wn[255];
-
-	Mat result_display;
-	vector<Mat> results;
-
-	for(i=0;i<templates.size();i++){
-		tmp = templates[i];
-
-		int result_cols =  frame.cols - tmp.cols + 1;
-		int result_rows = frame.rows - tmp.rows + 1;
-
-		if(result_cols <= 0 || result_rows <= 0)
-			continue;
-		cout << result_cols << "x" << result_rows << endl;
-		result.create( result_cols, result_rows, CV_32FC1 );
-
-		matchTemplate( frame, tmp, result, CV_TM_CCOEFF );
-		normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
-		minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
-
-		matchLoc = maxLoc;
-		cout << "minVal: " << minVal << " maxVal: " << maxVal << " Loc: " << matchLoc.x << "x" << matchLoc.y << endl;
-		
-		rectangle( frame, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
-		rectangle( result, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
-		
-		results.push_back(result.clone());
-/*		sprintf(wn,"DEBUG%d",i);
-		imshow(wn, result);*/
-	}
-
-	Mat roi;
-
-	int max_cols = 0;
-	for(i=0; i<results.size(); i++){
-		if(max_cols < results[i].cols)
-			max_cols = results[i].cols;
-	}
-	for(i=0; i<results.size();i++){
-		tmp = Mat::zeros(results[i].rows, max_cols, results[0].type());
-		roi = Mat(tmp, Rect(0,0,results[i].cols,results[i].rows));
-		roi = roi + results[i];
-		results[i] = tmp.clone();
-	}
-
-	vconcat(results, result_display);
-	imshow("DEBUG1",result_display);
-
 }

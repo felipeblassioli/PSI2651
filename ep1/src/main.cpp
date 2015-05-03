@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <stdio.h>
+#include <string>
 
 using namespace cv;
 using namespace std;
@@ -111,7 +112,7 @@ int Application::main_loop(){
 	return 0;
 }
 
-vector<double> Application::get_scale_factors(double start=0.1, double end=0.3, int parts=10){
+vector<double> Application::get_scale_factors(double start=0.1, double end=0.3, int parts=5){
 	vector<double> ret;
 
 	double inc = end/parts;
@@ -223,6 +224,11 @@ void Application::do_match(Mat frame, Mat templ){
 
 	unsigned int i;
 
+	//char wn[255];
+
+	Mat result_display;
+	vector<Mat> results;
+
 	for(i=0;i<templates.size();i++){
 		tmp = templates[i];
 
@@ -244,44 +250,27 @@ void Application::do_match(Mat frame, Mat templ){
 		rectangle( frame, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
 		rectangle( result, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
 		
-		imshow("DEBUG", result);
+		results.push_back(result.clone());
+/*		sprintf(wn,"DEBUG%d",i);
+		imshow(wn, result);*/
 	}
 
-/*	for(i=1; i<=4; i++){
-		//cvtColor(templ,tmp,CV_BGRA2GRAY);
-		resize(templ,tmp,Size(0,0),0.20/i,0.20/i,INTER_LINEAR);
-		cout << frame.total() << endl;
-		cout << frame.rows << "x" << frame.cols << endl;
-		cout << tmp.rows << "x" << tmp.cols << endl;
+	Mat roi;
 
-		int result_cols =  frame.cols - tmp.cols + 1;
-		int result_rows = frame.rows - tmp.rows + 1;
-		result.create( result_cols, result_rows, CV_32FC1 );
+	int max_cols = 0;
+	for(i=0; i<results.size(); i++){
+		if(max_cols < results[i].cols)
+			max_cols = results[i].cols;
+	}
+	for(i=0; i<results.size();i++){
+		tmp = Mat::zeros(results[i].rows, max_cols, results[0].type());
+		roi = Mat(tmp, Rect(0,0,results[i].cols,results[i].rows));
+		roi = roi + results[i];
+		results[i] = tmp.clone();
+	}
 
-
-		cout << tmp.channels() << endl;
-		matchTemplate( frame, tmp, result, CV_TM_CCOEFF );
-		normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
-
-		double minVal; double maxVal; Point minLoc; Point maxLoc;
-		Point matchLoc;
-
-		minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
-		//cout << result << endl;
-
-		matchLoc = maxLoc;
-		cout << "minVal: " << minVal << " maxVal: " << maxVal << " Loc: " << matchLoc.x << "x" << matchLoc.y << endl;
-		circle(result, matchLoc, 5, Scalar(0,0,255), -1);
-		circle(frame, matchLoc, 5, Scalar(0,0,255), -1);
-
-		if(maxVal == 1)
-		rectangle( frame, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
-		rectangle( result, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
-		
-
-		imshow("DEBUG", result);
-	}*/
-
+	vconcat(results, result_display);
+	imshow("DEBUG1",result_display);
 
 }
 
@@ -291,6 +280,10 @@ int main(int argc, char **argv){
 	string template_file (DEFAULT_TEMPLATE_FILE);
 
 	namedWindow("DEBUG0",1);
-	namedWindow("DEBUG",1);
+	namedWindow("DEBUG1",1);
+/*	namedWindow("DEBUG2",1);
+	namedWindow("DEBUG3",1);
+	namedWindow("DEBUG4",1);
+	namedWindow("DEBUG5",1);*/
 	return app.main_loop();
 }

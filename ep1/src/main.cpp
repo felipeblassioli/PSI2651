@@ -10,6 +10,33 @@ using namespace std;
 /* Defaults */
 #define DEFAULT_TEMPLATE_FILE "default_template.png"
 
+Mat dcReject(Mat a){
+	Scalar m = mean(a);
+	Mat res = a - m;
+/*	cout << a << endl;
+	cout << "vs" << endl;
+	cout << res << endl;*/
+	return res;
+}
+
+Mat somatoriaUm(Mat a){
+	//Scalar absSum = sum(abs(a));
+	Scalar soma = sum(abs(a));
+
+	Mat img = a.clone();
+/*	for(int i=0; i<img.rows; i++)
+		for(int j=0; j<img.cols; j++) 
+			soma += abs(img.at<Vec3b>(i,j));*/
+
+	for(int i=0; i<img.rows; i++)
+		for(int j=0; j<img.cols; j++) {
+			img.at<Vec3b>(i,j)[0] /= soma[0];
+			img.at<Vec3b>(i,j)[1] /= soma[1];
+			img.at<Vec3b>(i,j)[2] /= soma[2];
+		}
+			
+	return a;
+}
 
 class Application {
 
@@ -18,6 +45,7 @@ public:
 	~Application();
 	int main_loop();
 private:
+	vector<Mat> templates;
 	VideoCapture *capture;
 	string template_file;
 	Mat templ;
@@ -27,6 +55,7 @@ private:
 	void log(string);
 	int prepare();
 	Mat process_frame(Mat);
+	void do_match(Mat,Mat);
 };
 
 void Application::log(string msg){
@@ -100,6 +129,33 @@ int Application::prepare(){
 	if(templ.data == NULL){
 		cerr << "Failed to load template file!\n" << endl;
 	}
+
+	unsigned int i;
+	Mat t;
+	for(i=1;i<=5;i++){
+		t = templ.clone();
+		t = somatoriaUm(dcReject(t));
+		resize(t,t,Size(0,0),0.20/i,0.20/i,INTER_LINEAR);
+		templates.push_back(t);
+	}
+
+	Mat templates_display;
+	Mat tmp,roi;
+	vector<Mat> templates_cpy;
+	for(i=0; i<templates.size();i++)
+		templates_cpy.push_back(templates[i].clone());
+	for(i=1; i<templates.size();i++){
+		tmp = Mat::zeros(templates_cpy[0].rows, templates_cpy[i].cols, templates_cpy[0].type());
+		roi = Mat(tmp, Rect(0,0,templates_cpy[i].cols,templates_cpy[i].rows));
+		roi = roi + templates_cpy[i];
+		templates_cpy[i] = tmp.clone();
+	}
+
+	hconcat(templates_cpy, templates_display);
+	//imwrite("templates.png", templates_display);
+	imshow("DEBUG",templates_display);
+	waitKey(0);
+
 	this->log("prepare end");
 	return 0;
 }
@@ -123,47 +179,21 @@ Mat somatoriaUm(Mat a) // Faz somatoria absoluta da imagem dar um
   return d;
 }*/
 
-Mat dcReject(Mat a){
-	Scalar m = mean(a);
-	Mat res = a - m;
-	return res;
-}
-
-Mat somatoriaUm(Mat a){
-	//Scalar absSum = sum(abs(a));
-	Scalar soma = sum(abs(a));
-
-	Mat img = a.clone();
-/*	for(int i=0; i<img.rows; i++)
-		for(int j=0; j<img.cols; j++) 
-			soma += abs(img.at<Vec3b>(i,j));*/
-
-	for(int i=0; i<img.rows; i++)
-		for(int j=0; j<img.cols; j++) {
-			img.at<Vec3b>(i,j)[0] /= soma[0];
-			img.at<Vec3b>(i,j)[1] /= soma[1];
-			img.at<Vec3b>(i,j)[2] /= soma[2];
-		}
-			
-	return a;
-}
-
-
 Mat Application::process_frame(Mat frame){
 	int offx = 32;
 	int offy = offx;
 
-	/*Mat frame;
-	cvtColor(original_frame,frame,CV_BGRA2GRAY);
-*/
+/*	Mat frame;
+	cvtColor(original_frame,frame,CV_BGRA2GRAY);*/
+
 /*	adaptiveThreshold(frame,
 		frame,
 		255,
 		ADAPTIVE_THRESH_GAUSSIAN_C,
 		THRESH_BINARY_INV
-		,7,7);*/
+		,7,7);
+*/
 	Mat control_panel(frame, Rect(offx,offy,frame.cols - 2*offx, frame.rows*0.50 - 2*offy));
-	//control_panel = Scalar(0,255,0);
 
 	int thickness = 2;
 	int lineType = 8;
@@ -176,36 +206,54 @@ Mat Application::process_frame(Mat frame){
 	           thickness,
 	           lineType );
 
-	Mat tmp;
-	cvtColor(templ,tmp,CV_BGRA2GRAY);
-	resize(templ,tmp,Size(0,0),0.20,0.20,INTER_LINEAR);
-	cout << control_panel.total() << endl;
-	cout << control_panel.rows << "x" << control_panel.cols << endl;
-	cout << tmp.rows << "x" << tmp.cols << endl;
-	int result_cols =  control_panel.cols - tmp.cols + 1;
-	int result_rows = control_panel.rows - tmp.rows + 1;
-	result.create( result_cols, result_rows, CV_32FC1 );
-
-	//tmp=2*somatoriaUm(dcReject(tmp));
-
-	cout << tmp.channels() << endl;
-	matchTemplate( control_panel, tmp, result, CV_TM_CCOEFF_NORMED );
-	normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
-
-	double minVal; double maxVal; Point minLoc; Point maxLoc;
-	Point matchLoc;
-
-	minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
-	cout << "minVal: " << minVal << " maxVal: " << maxVal << endl;
-
-	matchLoc = minLoc;
-	circle(result, matchLoc, 5, Scalar(0,0,255), -1);
-	circle(frame, matchLoc, 5, Scalar(0,0,255), -1);
-	rectangle( frame, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
-	rectangle( result, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
-	
-	imshow("DEBUG", result);
+	do_match(control_panel, templ);
 	return frame;
+}
+
+void Application::do_match(Mat frame, Mat templ){
+	Mat result;
+	Mat tmp;
+
+	int i;
+
+	for(i=1; i<=4; i++){
+		//cvtColor(templ,tmp,CV_BGRA2GRAY);
+		resize(templ,tmp,Size(0,0),0.20/i,0.20/i,INTER_LINEAR);
+		cout << frame.total() << endl;
+		cout << frame.rows << "x" << frame.cols << endl;
+		cout << tmp.rows << "x" << tmp.cols << endl;
+
+		int result_cols =  frame.cols - tmp.cols + 1;
+		int result_rows = frame.rows - tmp.rows + 1;
+		result.create( result_cols, result_rows, CV_32FC1 );
+
+/*		x=2*somatoriaUm(dcReject(tmp));
+		imshow("DEBUG2",x);*/
+
+		cout << tmp.channels() << endl;
+		matchTemplate( frame, tmp, result, CV_TM_CCOEFF );
+		normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
+
+		double minVal; double maxVal; Point minLoc; Point maxLoc;
+		Point matchLoc;
+
+		minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
+		//cout << result << endl;
+
+		matchLoc = maxLoc;
+		cout << "minVal: " << minVal << " maxVal: " << maxVal << " Loc: " << matchLoc.x << "x" << matchLoc.y << endl;
+		circle(result, matchLoc, 5, Scalar(0,0,255), -1);
+		circle(frame, matchLoc, 5, Scalar(0,0,255), -1);
+
+		if(maxVal == 1)
+		rectangle( frame, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
+		rectangle( result, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
+		
+
+		imshow("DEBUG", result);
+	}
+
+
 }
 
 

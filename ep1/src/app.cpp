@@ -52,7 +52,7 @@ int Application::prepare(){
 		cerr << "Failed to load template file!\n" << endl;
 	}
 
-	target_detector = new TargetDetector(templ);
+	target_detector = new ThresholdTargetDetector(templ);
 	target_detector->init();
 
 	this->log("prepare end");
@@ -97,16 +97,6 @@ Mat Application::process_frame(Mat frame){
 	int offx = 32;
 	int offy = offx;
 
-/*	Mat frame;
-	cvtColor(original_frame,frame,CV_BGRA2GRAY);*/
-
-/*	adaptiveThreshold(frame,
-		frame,
-		255,
-		ADAPTIVE_THRESH_GAUSSIAN_C,
-		THRESH_BINARY_INV
-		,7,7);
-*/
 	Mat control_panel(frame, Rect(offx,offy,frame.cols - 2*offx, frame.rows*0.50 - 2*offy));
 
 	int thickness = 2;
@@ -120,6 +110,7 @@ Mat Application::process_frame(Mat frame){
 	           thickness,
 	           lineType );
 
+	cout << 'p' << endl;
 	target_detector->process_frame(control_panel);
 	return frame;
 }

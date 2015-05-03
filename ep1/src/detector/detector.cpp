@@ -28,6 +28,8 @@ void TargetDetector::init(){
 		//resize(t,t,Size(0,0),0.4/(i+1),0.4/(i+1),INTER_LINEAR);
 		resize(t,t,Size(0,0),factors[i],factors[i],INTER_LINEAR);
 		cout << t.rows << "x" << t.cols << endl;
+
+		t = this->prepare_template(t);
 		templates.push_back(t);
 	}
 
@@ -59,15 +61,32 @@ void TargetDetector::init(){
 }
 
 void TargetDetector::process_frame(Mat original_frame){
+	vector<TargetCandidate> candidates;
+	TargetCandidate candidate;
+	TargetCandidate best_candidate;
+
 	Mat frame = original_frame.clone();
-	this->prepare_frame(frame);
+	frame = this->prepare_frame(frame);
 
 	unsigned int i = 0;
 	for(i=0;i<templates.size();i++){
-		if(this->match(frame,templates[i])){
-
+		if(this->match(frame,templates[i], candidate)){
+			if(!candidate.empty){
+				cout << "ADDING CANDIDATE " << candidate.empty << endl;
+				candidates.push_back(candidate);
+			}
+				
 		}
 	}
+
+/*	cout << "here" << endl;
+	this->find_best_candidate(candidates, best_candidate);
+	cout << "wat" << endl;
+	if(best_candidate != NULL){
+		cout << "best_candidate is " << best_candidate << endl;
+		best_candidate->draw(original_frame);
+	}*/
+		
 }
 
 

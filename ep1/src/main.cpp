@@ -56,6 +56,8 @@ private:
 	int prepare();
 	Mat process_frame(Mat);
 	void do_match(Mat,Mat);
+
+	vector<double> get_scale_factors(double,double,int);
 };
 
 void Application::log(string msg){
@@ -109,6 +111,17 @@ int Application::main_loop(){
 	return 0;
 }
 
+vector<double> Application::get_scale_factors(double start=0.1, double end=0.3, int parts=10){
+	vector<double> ret;
+
+	double inc = end/parts;
+	for(int i=0;i<parts;i++){
+		cout << (start + inc*i) << endl;
+		ret.push_back(start + inc*i);
+	}
+	return ret;
+}
+
 int Application::prepare(){
 	this->log("prepare begin");
 	this->log(window_name);
@@ -132,10 +145,14 @@ int Application::prepare(){
 
 	unsigned int i;
 	Mat t;
-	for(i=1;i<=5;i++){
+	vector<double> factors = get_scale_factors();
+	for(i=0;i<factors.size();i++){
 		t = templ.clone();
 		t = somatoriaUm(dcReject(t));
-		resize(t,t,Size(0,0),0.20/i,0.20/i,INTER_LINEAR);
+		//cout << "bla" << factors[i] << endl;
+		//resize(t,t,Size(0,0),0.4/(i+1),0.4/(i+1),INTER_LINEAR);
+		resize(t,t,Size(0,0),factors[i],factors[i],INTER_LINEAR);
+		cout << t.rows << "x" << t.cols << endl;
 		templates.push_back(t);
 	}
 
@@ -144,8 +161,14 @@ int Application::prepare(){
 	vector<Mat> templates_cpy;
 	for(i=0; i<templates.size();i++)
 		templates_cpy.push_back(templates[i].clone());
-	for(i=1; i<templates.size();i++){
-		tmp = Mat::zeros(templates_cpy[0].rows, templates_cpy[i].cols, templates_cpy[0].type());
+
+	int max_rows = 0;
+	for(i=0; i<templates.size(); i++){
+		if(max_rows < templates[i].rows)
+			max_rows = templates[i].rows;
+	}
+	for(i=0; i<templates.size();i++){
+		tmp = Mat::zeros(max_rows, templates_cpy[i].cols, templates_cpy[0].type());
 		roi = Mat(tmp, Rect(0,0,templates_cpy[i].cols,templates_cpy[i].rows));
 		roi = roi + templates_cpy[i];
 		templates_cpy[i] = tmp.clone();
@@ -153,31 +176,12 @@ int Application::prepare(){
 
 	hconcat(templates_cpy, templates_display);
 	//imwrite("templates.png", templates_display);
-	imshow("DEBUG",templates_display);
+	imshow("DEBUG0",templates_display);
 	waitKey(0);
 
 	this->log("prepare end");
 	return 0;
 }
-
-/*Mat dcReject(Mat a) // Elimina nivel DC (subtrai media)
-{ Mat d=a.clone();
-  double soma=0.0;
-  for (MatIterator_<Vec3b> di=d.begin(); di!=d.end(); di++) soma += (*di);
-  double media=soma/d.total();
-  for (MatIterator_<Vec3b> di=d.begin(); di!=d.end(); di++) (*di) -= media;
-  return d;
-}
-
-
-Mat somatoriaUm(Mat a) // Faz somatoria absoluta da imagem dar um
-{ Mat d=a.clone();
-  double soma=0.0;
-  for (MatIterator_<Vec3b> di=d.begin(); di!=d.end(); di++) soma += abs(*di);
-  if (soma<epsilon) erro("Erro somatoriaUm: Divisao por zero"); 
-  for (MatIterator_<Vec3b> di=d.begin(); di!=d.end(); di++) (*di) /= soma;
-  return d;
-}*/
 
 Mat Application::process_frame(Mat frame){
 	int offx = 32;
@@ -211,12 +215,39 @@ Mat Application::process_frame(Mat frame){
 }
 
 void Application::do_match(Mat frame, Mat templ){
+	double minVal; double maxVal; Point minLoc; Point maxLoc;
+	Point matchLoc;
+
 	Mat result;
 	Mat tmp;
 
-	int i;
+	unsigned int i;
 
-	for(i=1; i<=4; i++){
+	for(i=0;i<templates.size();i++){
+		tmp = templates[i];
+
+		int result_cols =  frame.cols - tmp.cols + 1;
+		int result_rows = frame.rows - tmp.rows + 1;
+
+		if(result_cols <= 0 || result_rows <= 0)
+			continue;
+		cout << result_cols << "x" << result_rows << endl;
+		result.create( result_cols, result_rows, CV_32FC1 );
+
+		matchTemplate( frame, tmp, result, CV_TM_CCOEFF );
+		normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
+		minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
+
+		matchLoc = maxLoc;
+		cout << "minVal: " << minVal << " maxVal: " << maxVal << " Loc: " << matchLoc.x << "x" << matchLoc.y << endl;
+		
+		rectangle( frame, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
+		rectangle( result, matchLoc, Point( matchLoc.x + tmp.cols , matchLoc.y + tmp.rows ), Scalar(0,0,255));
+		
+		imshow("DEBUG", result);
+	}
+
+/*	for(i=1; i<=4; i++){
 		//cvtColor(templ,tmp,CV_BGRA2GRAY);
 		resize(templ,tmp,Size(0,0),0.20/i,0.20/i,INTER_LINEAR);
 		cout << frame.total() << endl;
@@ -227,8 +258,6 @@ void Application::do_match(Mat frame, Mat templ){
 		int result_rows = frame.rows - tmp.rows + 1;
 		result.create( result_cols, result_rows, CV_32FC1 );
 
-/*		x=2*somatoriaUm(dcReject(tmp));
-		imshow("DEBUG2",x);*/
 
 		cout << tmp.channels() << endl;
 		matchTemplate( frame, tmp, result, CV_TM_CCOEFF );
@@ -251,7 +280,7 @@ void Application::do_match(Mat frame, Mat templ){
 		
 
 		imshow("DEBUG", result);
-	}
+	}*/
 
 
 }
@@ -261,6 +290,7 @@ int main(int argc, char **argv){
 	Application app;
 	string template_file (DEFAULT_TEMPLATE_FILE);
 
+	namedWindow("DEBUG0",1);
 	namedWindow("DEBUG",1);
 	return app.main_loop();
 }

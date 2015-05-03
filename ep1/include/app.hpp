@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+#include "detector.hpp"
+
 #define DEFAULT_TEMPLATE_FILE "default_template.png"
 
 class Application {
@@ -12,6 +14,9 @@ public:
 	~Application();
 	int main_loop();
 private:
+
+	TargetDetector *target_detector;
+
 	cv::Mat templ;
 	cv::Mat result;
 	std::vector<cv::Mat> templates;
@@ -24,6 +29,4 @@ private:
 	int prepare();
 	cv::Mat process_frame(cv::Mat);
 	void do_match(cv::Mat,cv::Mat);
-
-	std::vector<double> get_scale_factors(double,double,int);
 };

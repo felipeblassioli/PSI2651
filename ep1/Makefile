@@ -2,7 +2,7 @@
 # http://mrbook.org/blog/tutorials/make/
 
 CC=g++
-CFLAGS=-Wall -I$(INCLUDE_DIR)
+CFLAGS=-DDEBUG -Wall -I$(INCLUDE_DIR)
 CFLAGS += `pkg-config --cflags opencv`
 LDFLAGS += `pkg-config --libs opencv`
 
@@ -11,7 +11,7 @@ INCLUDE_DIR=include
 ODIR=obj
 SRCDIR=src
 
-_OBJ = main.o app.o helpers.o
+_OBJ = helpers.o detector.o main.o app.o 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: $(SRCDIR)/%.cpp

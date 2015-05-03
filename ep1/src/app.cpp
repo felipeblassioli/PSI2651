@@ -1,5 +1,4 @@
 #include "app.hpp"
-#include "helpers.hpp"
 
 #include <iostream>
 #include <stdio.h>
@@ -15,14 +14,19 @@ void Application::log(string msg){
 Application::Application(string window_name, string template_file){
 	this->window_name = window_name;
 	this->template_file = template_file;
+	target_detector = NULL;
 	capture = NULL;
 	this->log("Constructor");
+	cout << "template_file: " << template_file << endl;
+	cout << "window_name: " << window_name << endl;
 }
 
 Application::~Application(){
 	this->log("Destructor");
 	if(capture != NULL)
 		delete capture;
+	if(target_detector != NULL)
+		delete target_detector;
 }
 
 int Application::main_loop(){
@@ -59,16 +63,7 @@ int Application::main_loop(){
 	return 0;
 }
 
-vector<double> Application::get_scale_factors(double start=0.1, double end=0.3, int parts=5){
-	vector<double> ret;
 
-	double inc = end/parts;
-	for(int i=0;i<parts;i++){
-		cout << (start + inc*i) << endl;
-		ret.push_back(start + inc*i);
-	}
-	return ret;
-}
 
 int Application::prepare(){
 	this->log("prepare begin");
@@ -76,7 +71,7 @@ int Application::prepare(){
 
 
 	namedWindow(window_name);
-	namedWindow("DEBUG0",1);
+	
 	namedWindow("DEBUG1",1);
 
 	/* Video Input */
@@ -87,48 +82,14 @@ int Application::prepare(){
 	}
 
 	/* Load files */
-	templ = imread(template_file,CV_LOAD_IMAGE_COLOR);
-	cout << templ.cols << endl;
-	cout << templ.rows << endl;
+	Mat templ = imread(template_file,CV_LOAD_IMAGE_COLOR);
+	cout << "templ: " << template_file << templ.cols << "x" << templ.rows << endl;
 	if(templ.data == NULL){
 		cerr << "Failed to load template file!\n" << endl;
 	}
 
-	unsigned int i;
-	Mat t;
-	vector<double> factors = get_scale_factors();
-	for(i=0;i<factors.size();i++){
-		t = templ.clone();
-		t = somatoriaUm(dcReject(t));
-		//cout << "bla" << factors[i] << endl;
-		//resize(t,t,Size(0,0),0.4/(i+1),0.4/(i+1),INTER_LINEAR);
-		resize(t,t,Size(0,0),factors[i],factors[i],INTER_LINEAR);
-		cout << t.rows << "x" << t.cols << endl;
-		templates.push_back(t);
-	}
-
-	Mat templates_display;
-	Mat tmp,roi;
-	vector<Mat> templates_cpy;
-	for(i=0; i<templates.size();i++)
-		templates_cpy.push_back(templates[i].clone());
-
-	int max_rows = 0;
-	for(i=0; i<templates.size(); i++){
-		if(max_rows < templates[i].rows)
-			max_rows = templates[i].rows;
-	}
-	for(i=0; i<templates.size();i++){
-		tmp = Mat::zeros(max_rows, templates_cpy[i].cols, templates_cpy[0].type());
-		roi = Mat(tmp, Rect(0,0,templates_cpy[i].cols,templates_cpy[i].rows));
-		roi = roi + templates_cpy[i];
-		templates_cpy[i] = tmp.clone();
-	}
-
-	hconcat(templates_cpy, templates_display);
-	//imwrite("templates.png", templates_display);
-	imshow("DEBUG0",templates_display);
-	waitKey(0);
+	target_detector = new TargetDetector(templ);
+	target_detector->init();
 
 	this->log("prepare end");
 	return 0;
@@ -161,7 +122,7 @@ Mat Application::process_frame(Mat frame){
 	           thickness,
 	           lineType );
 
-	do_match(control_panel, templ);
+	//target_detector->process_frame(control_panel);
 	return frame;
 }
 

@@ -27,3 +27,6 @@ ep1: $(OBJ)
 
 clean:
 	rm -f $(ODIR)/*.o ep1
+
+pack:
+	zip -r felipe_blassioli.zip include/ src/ obj/ Makefile default_template.png relatorio.pdf

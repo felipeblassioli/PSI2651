@@ -1,4 +1,5 @@
 #include "ui.hpp"
+#include <cstdlib>
 
 using namespace std;
 using namespace cv;
@@ -51,6 +52,10 @@ bool Button::intersect(TargetCandidate target){
 
 void Button::click(){
 	is_clicked = true;
+
+	if(this->label == "Q"){
+		exit(0);
+	}
 	cout <<"Button.CLICK" << endl;
 }
 

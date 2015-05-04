@@ -96,9 +96,9 @@ int Application::main_loop(){
 }
 
 Mat Application::process_frame(Mat frame){
-	Mat control_panel_roi(frame, control_panel.roi(frame));
-	control_panel.draw(control_panel_roi);
+	Mat control_panel_roi(frame, control_panel.roi());
 
+	control_panel.draw(control_panel_roi);
 	target_detector->process_frame(control_panel_roi);
 	return frame;
 }

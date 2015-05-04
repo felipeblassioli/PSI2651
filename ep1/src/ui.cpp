@@ -10,7 +10,7 @@ Button::Button(string lbl, int w, int h, Scalar c){
 	height = h;
 }
 
-void Button::draw(Mat img, Point p){
+void Button::draw(Mat img, Point offset){
 	int fontFace = FONT_HERSHEY_SCRIPT_SIMPLEX;
 	double fontScale = 2;
 	int thickness = 3;
@@ -23,31 +23,37 @@ void Button::draw(Mat img, Point p){
 	// center the text
 	/*Point textOrg((img.cols - textSize.width)/2,
 	  (img.rows + textSize.height)/2);*/
-	Point textOrg(p.x,(p.y - textSize.height)/2);
-
-	// draw the box
+	//Point textOrg(p.x,(p.y - height)/2);
+	cout << img.rows << endl;
+	cout << height << endl;
+	cout << endl;
+	//waitKey(0);
 	rectangle(
-		img, textOrg + Point(0, baseline),
-		textOrg + Point(textSize.width, -textSize.height),
+		img, 
+		Point(offset.x , (img.rows-height)/2),
+		Point(offset.x + width, (img.rows-height)/2 + height),
 		color
 	);
 
+
 	// then put the text itself
-	putText(img, label, textOrg, fontFace, fontScale,
-	Scalar::all(255), thickness, 8);
+/*	putText(img, label, textOrg, fontFace, fontScale,
+	Scalar::all(255), thickness, 8);*/
 }
 
 
 ControlPanel::ControlPanel(int offx, int offy){
 	this->offx = offx;
 	this->offy = offy;
-
-	buttons.push_back(Button("+", width*0.5, height*0.5));
 }
 
 void ControlPanel::init(Mat frame){
-	width = (frame.cols - 2*offx) - offx;
-	height = (frame.rows*0.50 - 2*offy) - offy;
+	width = (frame.cols - 2*offx);
+	height = (frame.rows*0.50 - 2*offy);
+
+	buttons.push_back(Button("+", height*0.5, height*0.80));
+	buttons.push_back(Button("-", height*0.5, height*0.80));
+	buttons.push_back(Button("Q", height*0.5, height*0.80));
 }
 
 void ControlPanel::draw(Mat control_panel){
@@ -63,12 +69,12 @@ void ControlPanel::draw(Mat control_panel){
 	           lineType );
 
 	unsigned int i = 0;
-	int gap_x = 16;
+	int gap_x = (width - (buttons.size() * buttons[0].width)) / buttons.size();
 	for(i=0;i<buttons.size();i++)
-		buttons[i].draw(control_panel, Point(i*buttons[i].width+gap_x,control_panel.rows));
+		buttons[i].draw(control_panel, Point(gap_x/2 + (buttons[i].width+gap_x)*i,0));
 }
 
 
-Rect ControlPanel::roi(Mat){
-	return Rect(offx,offy, width + offx, height + offy);
+Rect ControlPanel::roi(){
+	return Rect(offx, offy, width, height);
 }

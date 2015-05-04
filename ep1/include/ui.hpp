@@ -4,6 +4,7 @@
 #include "opencv2/core/core.hpp"
 #include <vector>
 #include <string>
+#include <iostream>
 
 using namespace std;
 using namespace cv;
@@ -17,7 +18,7 @@ class Button {
 
 		Button(string lbl, int w, int h, Scalar c = Scalar(255,0,0));
 
-		void draw(Mat img, Point p);
+		void draw(Mat img, Point offset);
 };
 
 class ControlPanel {
@@ -33,7 +34,7 @@ class ControlPanel {
 
 		void draw(Mat control_panel);
 
-		Rect roi(Mat frame);
+		Rect roi();
 	private:
 		vector<Button> buttons;
 };

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "detector.hpp"
+#include "ui.hpp"
 
 #define DEFAULT_TEMPLATE_FILE "default_template.png"
 
@@ -14,6 +15,7 @@ public:
 	~Application();
 	int main_loop();
 private:
+	ControlPanel control_panel;
 	TargetDetector *target_detector;
 
 	cv::Mat templ;
@@ -26,4 +28,5 @@ private:
 	int prepare();
 	cv::Mat process_frame(cv::Mat);
 	void log(std::string);
+	void init_ui_components(cv::Mat);
 };

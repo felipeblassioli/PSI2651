@@ -11,7 +11,7 @@ INCLUDE_DIR=include
 ODIR=obj
 SRCDIR=src
 
-_OBJ = helpers.o candidate.o detector.o grayscale.o main.o app.o 
+_OBJ = ui.o helpers.o candidate.o detector.o grayscale.o main.o app.o 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: $(SRCDIR)/detector/%.cpp

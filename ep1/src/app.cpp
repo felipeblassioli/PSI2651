@@ -68,6 +68,8 @@ int Application::main_loop(){
 	if(this->prepare())
 		return 1;
 
+	*capture >> frame;
+	control_panel.init(frame);
 	while(1){
 		*capture >> frame;
 		if(frame.empty())
@@ -94,23 +96,9 @@ int Application::main_loop(){
 }
 
 Mat Application::process_frame(Mat frame){
-	int offx = 32;
-	int offy = offx;
+	Mat control_panel_roi(frame, control_panel.roi(frame));
+	control_panel.draw(control_panel_roi);
 
-	Mat control_panel(frame, Rect(offx,offy,frame.cols - 2*offx, frame.rows*0.50 - 2*offy));
-
-	int thickness = 2;
-	int lineType = 8;
-	Scalar color = Scalar( 255, 0, 0 );
-
-	rectangle( control_panel,
-	           Point( 0, 0 ),
-	           Point( control_panel.cols, control_panel.rows),
-	           color,
-	           thickness,
-	           lineType );
-
-	cout << 'p' << endl;
-	target_detector->process_frame(control_panel);
+	target_detector->process_frame(control_panel_roi);
 	return frame;
 }

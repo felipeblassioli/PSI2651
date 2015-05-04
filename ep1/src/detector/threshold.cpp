@@ -11,11 +11,12 @@ ThresholdTargetDetector::ThresholdTargetDetector(Mat template_file) : TargetDete
 	cout << "new ThresholdTargetDetector" << endl;
 	if(DEBUG){
 		namedWindow("THRESH_FRAME",1);
+		namedWindow("THRESH_TMATCH",1);
 	}
 }
 
-int ThresholdTargetDetector::match(Mat frame, Mat templ, TargetCandidate& candidate){
-	cout << "ThresholdTargetDetector::match" <<endl;
+int ThresholdTargetDetector::match(Mat frame, Mat& templ, TargetCandidate& candidate){
+	cout << "ThresholdTargetDetector::match" << "templ: " << templ.rows << "x" << templ.cols << endl;
 	double minVal; double maxVal; Point minLoc; Point maxLoc;
 	Point matchLoc;
 
@@ -28,15 +29,30 @@ int ThresholdTargetDetector::match(Mat frame, Mat templ, TargetCandidate& candid
 		return 0 ;
 	result.create(result_cols, result_rows, CV_32FC1);
 
-	matchTemplate( frame, templ, result, CV_TM_SQDIFF_NORMED );
-	normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
+	//CV_TM_CCOEFF
+	//CV_TM_SQDIFF
+	matchTemplate( frame, templ, result, CV_TM_CCOEFF_NORMED );
+	//normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
 	minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
 
 	cout << "minVal: " << minVal << "maxVal:" << maxVal << endl;
 	candidate.empty = 0;
+	candidate.src = maxLoc;
+	candidate.templ = &templ;
+	candidate.score = maxVal;
+	if(maxVal > 0.58)
+		candidate.draw(frame);
+	else
+		candidate.empty = 1;
+
+/*	candidate.empty = 0;
 	candidate.src = minLoc;
 	candidate.templ = &templ;
 	candidate.score = minVal;
+
+	if(minVal < 0.06)
+		candidate.draw(frame);
+	candidate.draw(result);*/
 
 	if(DEBUG){
 		static unsigned int count = 0;
@@ -62,7 +78,7 @@ int ThresholdTargetDetector::match(Mat frame, Mat templ, TargetCandidate& candid
 				results[i] = tmp.clone();
 			}
 			vconcat(results, result_display);
-			imshow("DEBUG1", result_display);
+			imshow("THRESH_TMATCH", result_display);
 			results.clear();
 		}
 		
@@ -78,12 +94,14 @@ int ThresholdTargetDetector::match(Mat frame, Mat templ, TargetCandidate& candid
 Mat ThresholdTargetDetector::threshold(Mat frame){
 	cvtColor(frame,frame,CV_BGRA2GRAY);
 
-	adaptiveThreshold(frame,
+/*	adaptiveThreshold(frame,
 		frame,
 		255,
 		ADAPTIVE_THRESH_GAUSSIAN_C,
-		THRESH_BINARY_INV
-		,7,7);
+		THRESH_BINARY,
+		3,
+		3
+	);*/
 
 	return frame;
 }
@@ -105,19 +123,22 @@ Mat ThresholdTargetDetector::prepare_frame(Mat frame){
 	return frame;
 }
 
-/*void ThresholdTargetDetector::find_best_candidate(vector<TargetCandidate> candidates, TargetCandidate &output){
+int ThresholdTargetDetector::find_best_candidate(vector<TargetCandidate> candidates){
+	if (candidates.size() == 0)
+		return -1;
 	unsigned int i;
-	TargetCandidate *best;
 
 	cout << "find_best_candidate" << endl;
-	best = &candidates[0];
-	cout << "a" << endl;
+	cout << "total candidates: " << candidates.size() << endl;
+	int best = 0;
 	for(i=1;i<candidates.size();i++){
-		if(candidates[i].score < best->score )
-			best = &candidates[i];
+		cout << "score is " << endl;
+		//cout << candidates[i] << endl;
+		cout << candidates[i].score << endl;
+		if(candidates[i].score > candidates[best].score )
+			best = i;
 	}
-	cout << "x" << endl;
-	output = best;
+	cout << "best is " << best << " with " << candidates[best].score << " from " << candidates.size() << endl;
+	return best;
 }
 
-*/

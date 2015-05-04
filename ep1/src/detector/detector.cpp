@@ -63,7 +63,6 @@ void TargetDetector::init(){
 void TargetDetector::process_frame(Mat original_frame){
 	vector<TargetCandidate> candidates;
 	TargetCandidate candidate;
-	TargetCandidate best_candidate;
 
 	Mat frame = original_frame.clone();
 	frame = this->prepare_frame(frame);
@@ -79,13 +78,10 @@ void TargetDetector::process_frame(Mat original_frame){
 		}
 	}
 
-/*	cout << "here" << endl;
-	this->find_best_candidate(candidates, best_candidate);
-	cout << "wat" << endl;
-	if(best_candidate != NULL){
-		cout << "best_candidate is " << best_candidate << endl;
-		best_candidate->draw(original_frame);
-	}*/
+	int best = this->find_best_candidate(candidates);
+	if(best != -1){
+		candidates[best].draw(original_frame);
+	}
 		
 }
 

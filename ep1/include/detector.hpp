@@ -19,22 +19,22 @@ class TargetDetector {
 
 		void init();
 		void process_frame(cv::Mat);
-		virtual int match(cv::Mat, cv::Mat, TargetCandidate& ){return 0;}
-		//virtual void find_best_candidate(std::vector<TargetCandidate> candidates,TargetCandidate& best){best = NULL;};
+		virtual int match(cv::Mat, cv::Mat&, TargetCandidate& ){return 0;}
+		virtual int find_best_candidate(std::vector<TargetCandidate> candidates){return -1;};
 	protected:
 		cv::Mat original_template;
 		std::vector<cv::Mat> templates;
 
 		virtual cv::Mat prepare_template(cv::Mat f){return f;}
 		virtual cv::Mat prepare_frame(cv::Mat f){return f;}
-		std::vector<double> get_scale_factors(double start=0.1, double end=0.3, int parts=5);
+		std::vector<double> get_scale_factors(double start=0.1, double end=0.4, int parts=12);
 };
 
 class ThresholdTargetDetector : public TargetDetector {
 	public:
 		ThresholdTargetDetector(cv::Mat);
-		virtual int match(cv::Mat, cv::Mat, TargetCandidate& );
-		//virtual void find_best_candidate(std::vector<TargetCandidate>, TargetCandidate& );
+		virtual int match(cv::Mat, cv::Mat&, TargetCandidate& );
+		virtual int find_best_candidate(std::vector<TargetCandidate>);
 	protected:
 		virtual cv::Mat prepare_template(cv::Mat);
 		virtual cv::Mat prepare_frame(cv::Mat);

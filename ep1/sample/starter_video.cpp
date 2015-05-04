@@ -45,19 +45,19 @@ namespace {
             imshow(window_name, frame);
             char key = (char)waitKey(5); //delay N millis, usually long enough to display and capture input
             switch (key) {
-        case 'q':
-        case 'Q':
-        case 27: //escape key
-            return 0;
-        case ' ': //Save an image
-            sprintf(filename,"filename%.3d.jpg",n++);
-            imwrite(filename,frame);
-            cout << "Saved " << filename << endl;
-            break;
-        default:
-            break;
-            }
-        }
+                case 'q':
+                case 'Q':
+                case 27: //escape key
+                    return 0;
+                case ' ': //Save an image
+                    sprintf(filename,"filename%.3d.jpg",n++);
+                    imwrite(filename,frame);
+                    cout << "Saved " << filename << endl;
+                    break;
+                default:
+                    break;
+                    }
+                }
         return 0;
     }
 

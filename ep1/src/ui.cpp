@@ -20,11 +20,6 @@ void Button::draw(Mat img, Point offset){
 	                fontScale, thickness, &baseline);
 	baseline += thickness;
 
-	// center the text
-	/*Point textOrg((img.cols - textSize.width)/2,
-	  (img.rows + textSize.height)/2);*/
-	//Point textOrg(p.x,(p.y - height)/2);
-
 	Point p = Point(offset.x , (img.rows-height)/2);
 	rectangle(
 		img, 
@@ -33,8 +28,6 @@ void Button::draw(Mat img, Point offset){
 		color
 	);
 
-
-	// then put the text itself
 	putText(img, label, Point((p.x + (width - textSize.width)/2),( p.y + (textSize.height + height)/2)), fontFace, fontScale,
 	Scalar::all(255), thickness, 8);
 }

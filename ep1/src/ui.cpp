@@ -24,21 +24,19 @@ void Button::draw(Mat img, Point offset){
 	/*Point textOrg((img.cols - textSize.width)/2,
 	  (img.rows + textSize.height)/2);*/
 	//Point textOrg(p.x,(p.y - height)/2);
-	cout << img.rows << endl;
-	cout << height << endl;
-	cout << endl;
-	//waitKey(0);
+
+	Point p = Point(offset.x , (img.rows-height)/2);
 	rectangle(
 		img, 
-		Point(offset.x , (img.rows-height)/2),
-		Point(offset.x + width, (img.rows-height)/2 + height),
+		p,
+		p + Point(width,height),
 		color
 	);
 
 
 	// then put the text itself
-/*	putText(img, label, textOrg, fontFace, fontScale,
-	Scalar::all(255), thickness, 8);*/
+	putText(img, label, Point((p.x + (width - textSize.width)/2),( p.y + (textSize.height + height)/2)), fontFace, fontScale,
+	Scalar::all(255), thickness, 8);
 }
 
 

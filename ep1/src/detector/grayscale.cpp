@@ -6,17 +6,17 @@
 using namespace std;
 using namespace cv;
 
-ThresholdTargetDetector::ThresholdTargetDetector(Mat template_file) : TargetDetector(template_file) {
+GrayscaleTargetDetector::GrayscaleTargetDetector(Mat template_file) : TargetDetector(template_file) {
 	//namedWindow("DEBUG_TH")
-	cout << "new ThresholdTargetDetector" << endl;
+	cout << "new GrayscaleTargetDetector" << endl;
 	if(DEBUG){
 		namedWindow("THRESH_FRAME",1);
 		namedWindow("THRESH_TMATCH",1);
 	}
 }
 
-int ThresholdTargetDetector::match(Mat frame, Mat& templ, TargetCandidate& candidate){
-	cout << "ThresholdTargetDetector::match" << "templ: " << templ.rows << "x" << templ.cols << endl;
+int GrayscaleTargetDetector::match(Mat frame, Mat& templ, TargetCandidate& candidate){
+	cout << "GrayscaleTargetDetector::match" << "templ: " << templ.rows << "x" << templ.cols << endl;
 	double minVal; double maxVal; Point minLoc; Point maxLoc;
 	Point matchLoc;
 
@@ -87,11 +87,11 @@ int ThresholdTargetDetector::match(Mat frame, Mat& templ, TargetCandidate& candi
 	return 1;
 }
 
-/*void ThresholdTargetDetector::process_frame(Mat frame){
+/*void GrayscaleTargetDetector::process_frame(Mat frame){
 	cout << "wtf" << endl;
 }*/
 
-Mat ThresholdTargetDetector::threshold(Mat frame){
+Mat GrayscaleTargetDetector::threshold(Mat frame){
 	cvtColor(frame,frame,CV_BGRA2GRAY);
 
 /*	adaptiveThreshold(frame,
@@ -106,11 +106,11 @@ Mat ThresholdTargetDetector::threshold(Mat frame){
 	return frame;
 }
 
-Mat ThresholdTargetDetector::prepare_template(Mat frame){
+Mat GrayscaleTargetDetector::prepare_template(Mat frame){
 	return this->threshold(frame);
 }
 
-Mat ThresholdTargetDetector::prepare_frame(Mat frame){
+Mat GrayscaleTargetDetector::prepare_frame(Mat frame){
 	//Mat frame = original_frame.clone();
 	cout << "prepare frame begin" << endl;
 	frame = this->threshold(frame);
@@ -123,7 +123,7 @@ Mat ThresholdTargetDetector::prepare_frame(Mat frame){
 	return frame;
 }
 
-int ThresholdTargetDetector::find_best_candidate(vector<TargetCandidate> candidates){
+int GrayscaleTargetDetector::find_best_candidate(vector<TargetCandidate> candidates){
 	if (candidates.size() == 0)
 		return -1;
 	unsigned int i;

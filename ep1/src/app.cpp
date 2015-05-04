@@ -52,7 +52,7 @@ int Application::prepare(){
 		cerr << "Failed to load template file!\n" << endl;
 	}
 
-	target_detector = new ThresholdTargetDetector(templ);
+	target_detector = new GrayscaleTargetDetector(templ);
 	target_detector->init();
 
 	this->log("prepare end");

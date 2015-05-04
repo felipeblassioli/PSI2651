@@ -30,9 +30,9 @@ class TargetDetector {
 		std::vector<double> get_scale_factors(double start=0.1, double end=0.4, int parts=12);
 };
 
-class ThresholdTargetDetector : public TargetDetector {
+class GrayscaleTargetDetector : public TargetDetector {
 	public:
-		ThresholdTargetDetector(cv::Mat);
+		GrayscaleTargetDetector(cv::Mat);
 		virtual int match(cv::Mat, cv::Mat&, TargetCandidate& );
 		virtual int find_best_candidate(std::vector<TargetCandidate>);
 	protected:

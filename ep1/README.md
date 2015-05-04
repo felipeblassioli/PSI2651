@@ -1,5 +1,8 @@
 # PSI2651 - EP1
 
+Autor: Felipe Anez de Toledo Blassioli
+NUSP: 7991058
+
 ## Executável
 
 Foi utilizado OpenCV 2.4.10.

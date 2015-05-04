@@ -11,7 +11,7 @@ Button::Button(string lbl, int w, int h, Scalar c){
 }
 
 void Button::draw(Mat img, Point offset){
-	int fontFace = FONT_HERSHEY_SCRIPT_SIMPLEX;
+	int fontFace = FONT_HERSHEY_SIMPLEX ;
 	double fontScale = 2;
 	int thickness = 3;
 
@@ -29,7 +29,7 @@ void Button::draw(Mat img, Point offset){
 	);
 
 	putText(img, label, Point((p.x + (width - textSize.width)/2),( p.y + (textSize.height + height)/2)), fontFace, fontScale,
-	Scalar::all(255), thickness, 8);
+	color, thickness, 8);
 }
 
 

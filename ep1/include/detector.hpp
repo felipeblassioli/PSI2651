@@ -3,6 +3,9 @@
 #include "opencv2/core/core.hpp"
 #include <vector>
 
+#ifndef DEBUG
+#define DEBUG 0
+#endif
 class TargetCandidate {
 	public:
 		cv::Point src,p,q;

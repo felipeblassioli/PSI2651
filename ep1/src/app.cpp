@@ -15,9 +15,6 @@ Application::Application(string window_name, string template_file){
 	this->template_file = template_file;
 	target_detector = NULL;
 	capture = NULL;
-	this->log("Constructor");
-	cout << "template_file: " << template_file << endl;
-	cout << "window_name: " << window_name << endl;
 }
 
 Application::~Application(){
@@ -32,10 +29,7 @@ int Application::prepare(){
 	this->log("prepare begin");
 	this->log(window_name);
 
-
 	namedWindow(window_name);
-	
-	namedWindow("DEBUG1",1);
 
 	/* Video Input */
 	capture = new VideoCapture(0);

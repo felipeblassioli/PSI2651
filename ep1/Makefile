@@ -2,7 +2,7 @@
 # http://mrbook.org/blog/tutorials/make/
 
 CC=g++
-CFLAGS=-DDEBUG -Wall -I$(INCLUDE_DIR)
+CFLAGS=-Wall -I$(INCLUDE_DIR)
 CFLAGS += `pkg-config --cflags opencv`
 LDFLAGS += `pkg-config --libs opencv`
 

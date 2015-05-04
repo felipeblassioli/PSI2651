@@ -1,15 +1,24 @@
+#ifndef _INCL_DETECT
+#define _INCL_DETECT
 #include "opencv2/core/core.hpp"
 #include <vector>
 
 class TargetCandidate {
 	public:
-		cv::Point src;
+		cv::Point src,p,q;
 		cv::Mat *templ;
 		int empty;
+
 		TargetCandidate();
 		TargetCandidate(cv::Point, cv::Mat, double);
 		void draw(cv::Mat);
 		double score;
+
+		bool operator == (const TargetCandidate& d) const {
+			if(d.empty || this->empty)
+				return false;
+			return this->templ->rows == d.templ->rows && this->templ->cols == d.templ->cols;
+		}
 };
 
 class TargetDetector {
@@ -18,7 +27,7 @@ class TargetDetector {
 		virtual ~TargetDetector();
 
 		void init();
-		void process_frame(cv::Mat);
+		void process_frame(cv::Mat, TargetCandidate&);
 		virtual int match(cv::Mat, cv::Mat&, TargetCandidate& ){return 0;}
 		virtual int find_best_candidate(std::vector<TargetCandidate> candidates){return -1;};
 	protected:
@@ -41,3 +50,4 @@ class GrayscaleTargetDetector : public TargetDetector {
 	private:
 		cv::Mat threshold(cv::Mat);
 };
+#endif

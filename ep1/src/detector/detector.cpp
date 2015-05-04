@@ -60,7 +60,7 @@ void TargetDetector::init(){
 	}
 }
 
-void TargetDetector::process_frame(Mat original_frame){
+void TargetDetector::process_frame(Mat original_frame, TargetCandidate& output){
 	vector<TargetCandidate> candidates;
 	TargetCandidate candidate;
 
@@ -81,6 +81,16 @@ void TargetDetector::process_frame(Mat original_frame){
 	int best = this->find_best_candidate(candidates);
 	if(best != -1){
 		candidates[best].draw(original_frame);
+
+		output.empty = 0;
+		cout << "But best: " << candidates[best].p.x << "," << candidates[best].p.y << endl;
+		output.p = candidates[best].p;
+		output.q = candidates[best].q;
+		output.templ = candidates[best].templ;
+		output.src = candidates[best].src;
+		output.score = candidates[best].score;
+	}else{
+		output.empty = 1;
 	}
 		
 }

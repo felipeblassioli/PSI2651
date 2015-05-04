@@ -8,6 +8,8 @@ Button::Button(string lbl, int w, int h, Scalar c){
 	color = c;
 	width = w;
 	height = h;
+	is_clicked = false;
+	count = 0;
 }
 
 void Button::draw(Mat img, Point offset){
@@ -21,17 +23,36 @@ void Button::draw(Mat img, Point offset){
 	baseline += thickness;
 
 	Point p = Point(offset.x , (img.rows-height)/2);
-	rectangle(
-		img, 
-		p,
-		p + Point(width,height),
-		color
-	);
+	r1 = Point(p.x,p.y);
+	r2 = Point(p.x + width, p.y + height);
+
+	if(is_clicked){
+		rectangle( img,r1,r2,Scalar(255,255,255),-1);
+	}
+
+	rectangle(img, r1, r2,color);
 
 	putText(img, label, Point((p.x + (width - textSize.width)/2),( p.y + (textSize.height + height)/2)), fontFace, fontScale,
 	color, thickness, 8);
 }
 
+bool Button::pt_inside_rect(Point p){
+	cout << "Button.pt_inside_rect: " << p.x << "," << p.y;
+	cout << " RECT ";
+	cout << this->r1.x << "," << this->r1.y << " -- ";
+	cout << this->r2.x << "," << this->r2.y << endl;
+	
+	return (p.x >= this->r1.x && p.x <= this->r2.x) && (p.y >= this->r1.y&& p.y <= this->r2.y);
+}
+
+bool Button::intersect(TargetCandidate target){
+	return (pt_inside_rect(target.p) || pt_inside_rect(target.q));
+}
+
+void Button::click(){
+	is_clicked = true;
+	cout <<"Button.CLICK" << endl;
+}
 
 ControlPanel::ControlPanel(int offx, int offy){
 	this->offx = offx;
@@ -68,4 +89,21 @@ void ControlPanel::draw(Mat control_panel){
 
 Rect ControlPanel::roi(){
 	return Rect(offx, offy, width, height);
+}
+
+bool ControlPanel::intersect(TargetCandidate target){
+	unsigned int i;
+	for(i=0;i<buttons.size();i++){
+		if(buttons[i].intersect(target)){
+			if(++buttons[i].count >= 10){
+				buttons[i].click();
+			}
+			return true;
+		}else{
+			buttons[i].count = 0;
+			buttons[i].is_clicked = false;
+		}
+			
+	}
+	return false;
 }

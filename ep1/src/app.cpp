@@ -3,7 +3,6 @@
 #include <iostream>
 #include <stdio.h>
 #include "opencv2/imgproc/imgproc.hpp"
-
 using namespace cv;
 using namespace std;
 
@@ -96,9 +95,29 @@ int Application::main_loop(){
 }
 
 Mat Application::process_frame(Mat frame){
+	static TargetCandidate prev_target;
+	static unsigned long int count = 0;
+	TargetCandidate target;
 	Mat control_panel_roi(frame, control_panel.roi());
 
 	control_panel.draw(control_panel_roi);
-	target_detector->process_frame(control_panel_roi);
+	target_detector->process_frame(control_panel_roi, target);
+	if(!target.empty){
+		cout << "Got target: " << target.templ->rows << endl; 
+		if(!prev_target.empty &&  !target.empty){
+			if(control_panel.intersect(target)){
+				count++;
+				cout << "\tGot count: " << count << endl;
+			}else{
+				count = 0;
+			}
+			
+		}else{
+			count=0;
+		}
+		prev_target = target;
+	}else{
+		count=0;
+	}
 	return frame;
 }

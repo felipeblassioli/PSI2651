@@ -15,6 +15,9 @@ TargetCandidate::TargetCandidate(Point src, Mat templ, double score){
 	this->templ = &templ;
 	this->score = score;
 	this->empty = 0;
+
+	this->p = Point(src.x,src.y);
+	this->q = Point(src.x + templ.cols, src.y + templ.rows);
 }
 
 void TargetCandidate::draw(Mat dst){

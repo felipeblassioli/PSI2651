@@ -37,6 +37,8 @@ int GrayscaleTargetDetector::match(Mat frame, Mat& templ, TargetCandidate& candi
 
 	cout << "minVal: " << minVal << "maxVal:" << maxVal << endl;
 	candidate.empty = 0;
+	candidate.p = Point(maxLoc.x,maxLoc.y);
+	candidate.q = Point(maxLoc.x + templ.cols, maxLoc.y + templ.rows);
 	candidate.src = maxLoc;
 	candidate.templ = &templ;
 	candidate.score = maxVal;

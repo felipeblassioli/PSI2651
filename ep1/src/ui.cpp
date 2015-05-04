@@ -38,11 +38,6 @@ void Button::draw(Mat img, Point offset){
 }
 
 bool Button::pt_inside_rect(Point p){
-	cout << "Button.pt_inside_rect: " << p.x << "," << p.y;
-	cout << " RECT ";
-	cout << this->r1.x << "," << this->r1.y << " -- ";
-	cout << this->r2.x << "," << this->r2.y << endl;
-	
 	return (p.x >= this->r1.x && p.x <= this->r2.x) && (p.y >= this->r1.y&& p.y <= this->r2.y);
 }
 
@@ -56,7 +51,6 @@ void Button::click(){
 	if(this->label == "Q"){
 		exit(0);
 	}
-	cout <<"Button.CLICK" << endl;
 }
 
 ControlPanel::ControlPanel(int offx, int offy){

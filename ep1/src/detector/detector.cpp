@@ -25,9 +25,8 @@ void TargetDetector::init(){
 	for(i=0;i<factors.size();i++){
 		t = original_template.clone();
 		t = somatoriaUm(dcReject(t));
-		//resize(t,t,Size(0,0),0.4/(i+1),0.4/(i+1),INTER_LINEAR);
+
 		resize(t,t,Size(0,0),factors[i],factors[i],INTER_LINEAR);
-		cout << t.rows << "x" << t.cols << endl;
 
 		t = this->prepare_template(t);
 		templates.push_back(t);
@@ -71,7 +70,6 @@ void TargetDetector::process_frame(Mat original_frame, TargetCandidate& output){
 	for(i=0;i<templates.size();i++){
 		if(this->match(frame,templates[i], candidate)){
 			if(!candidate.empty){
-				cout << "ADDING CANDIDATE " << candidate.empty << endl;
 				candidates.push_back(candidate);
 			}
 				
@@ -83,7 +81,6 @@ void TargetDetector::process_frame(Mat original_frame, TargetCandidate& output){
 		candidates[best].draw(original_frame);
 
 		output.empty = 0;
-		cout << "But best: " << candidates[best].p.x << "," << candidates[best].p.y << endl;
 		output.p = candidates[best].p;
 		output.q = candidates[best].q;
 		output.templ = candidates[best].templ;
@@ -101,7 +98,6 @@ vector<double> TargetDetector::get_scale_factors(double start, double end, int p
 
 	double inc = end/parts;
 	for(int i=0;i<parts;i++){
-		cout << (start + inc*i) << endl;
 		ret.push_back(start + inc*i);
 	}
 	return ret;

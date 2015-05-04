@@ -21,9 +21,5 @@ TargetCandidate::TargetCandidate(Point src, Mat templ, double score){
 }
 
 void TargetCandidate::draw(Mat dst){
-	cout << "draw" << endl;
-	cout << src << endl;
-	cout << "templ is " << templ->rows << "x" << templ->cols << endl;
 	rectangle(dst, src, Point( src.x + templ->cols , src.y + templ->rows ), Scalar(0,0,255));
-	cout << "draw" << endl;
 }

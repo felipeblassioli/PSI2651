@@ -7,8 +7,6 @@ using namespace std;
 using namespace cv;
 
 GrayscaleTargetDetector::GrayscaleTargetDetector(Mat template_file) : TargetDetector(template_file) {
-	//namedWindow("DEBUG_TH")
-	cout << "new GrayscaleTargetDetector" << endl;
 	if(DEBUG){
 		namedWindow("THRESH_FRAME",1);
 		namedWindow("THRESH_TMATCH",1);
@@ -16,7 +14,6 @@ GrayscaleTargetDetector::GrayscaleTargetDetector(Mat template_file) : TargetDete
 }
 
 int GrayscaleTargetDetector::match(Mat frame, Mat& templ, TargetCandidate& candidate){
-	cout << "GrayscaleTargetDetector::match" << "templ: " << templ.rows << "x" << templ.cols << endl;
 	double minVal; double maxVal; Point minLoc; Point maxLoc;
 	Point matchLoc;
 
@@ -29,13 +26,9 @@ int GrayscaleTargetDetector::match(Mat frame, Mat& templ, TargetCandidate& candi
 		return 0 ;
 	result.create(result_cols, result_rows, CV_32FC1);
 
-	//CV_TM_CCOEFF
-	//CV_TM_SQDIFF
 	matchTemplate( frame, templ, result, CV_TM_CCOEFF_NORMED );
-	//normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
 	minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
 
-	cout << "minVal: " << minVal << "maxVal:" << maxVal << endl;
 	candidate.empty = 0;
 	candidate.p = Point(maxLoc.x,maxLoc.y);
 	candidate.q = Point(maxLoc.x + templ.cols, maxLoc.y + templ.rows);
@@ -46,15 +39,6 @@ int GrayscaleTargetDetector::match(Mat frame, Mat& templ, TargetCandidate& candi
 		candidate.draw(frame);
 	else
 		candidate.empty = 1;
-
-/*	candidate.empty = 0;
-	candidate.src = minLoc;
-	candidate.templ = &templ;
-	candidate.score = minVal;
-
-	if(minVal < 0.06)
-		candidate.draw(frame);
-	candidate.draw(result);*/
 
 	if(DEBUG){
 		static unsigned int count = 0;
@@ -89,10 +73,6 @@ int GrayscaleTargetDetector::match(Mat frame, Mat& templ, TargetCandidate& candi
 	return 1;
 }
 
-/*void GrayscaleTargetDetector::process_frame(Mat frame){
-	cout << "wtf" << endl;
-}*/
-
 Mat GrayscaleTargetDetector::threshold(Mat frame){
 	cvtColor(frame,frame,CV_BGRA2GRAY);
 
@@ -113,16 +93,8 @@ Mat GrayscaleTargetDetector::prepare_template(Mat frame){
 }
 
 Mat GrayscaleTargetDetector::prepare_frame(Mat frame){
-	//Mat frame = original_frame.clone();
-	cout << "prepare frame begin" << endl;
-	frame = this->threshold(frame);
-
-/*	if(DEBUG){
-		imshow("DEBUG1", frame);
-	}
-	waitKey(0);*/
-	cout << "prepare frame end" << endl;
-	return frame;
+	/* TODO: Rename this */
+	return this->threshold(frame);;
 }
 
 int GrayscaleTargetDetector::find_best_candidate(vector<TargetCandidate> candidates){
@@ -130,17 +102,11 @@ int GrayscaleTargetDetector::find_best_candidate(vector<TargetCandidate> candida
 		return -1;
 	unsigned int i;
 
-	cout << "find_best_candidate" << endl;
-	cout << "total candidates: " << candidates.size() << endl;
 	int best = 0;
 	for(i=1;i<candidates.size();i++){
-		cout << "score is " << endl;
-		//cout << candidates[i] << endl;
-		cout << candidates[i].score << endl;
 		if(candidates[i].score > candidates[best].score )
 			best = i;
 	}
-	cout << "best is " << best << " with " << candidates[best].score << " from " << candidates.size() << endl;
 	return best;
 }
 
